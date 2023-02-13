@@ -1,7 +1,7 @@
 const assumptions = require('../modules/assumptions');
 
 function calculateInches(req) {
-    return req.palletTotalHeight / 2.5
+    return req.palletTotalHeight / 25.4
 }
 
 function calculatePalletWeightLbs(req) {
@@ -9,17 +9,17 @@ function calculatePalletWeightLbs(req) {
 }
 
 function casesPerContainer(req) {
-    let _40qtyPallets = this.calculate40QTYUnits(req)
-    return _40qtyPallets / req.caseCount
+    let _40qtyPallets = calculate40QTYUnits(req)
+    return _40qtyPallets / Number(req.caseCount)
 }
 
 function calculate40QTYUnits(req) {
-    return 20 * req.caseCount * req.casesPerPallet
+    return 20 * Number(req.caseCount) * Number(req.casesPerPallet)
 }
 
 function calculateContainerWtLbs(req) {
-    let casesPerContainer = this.casesPerContainer(req)
-    return casesPerContainer * req.grossKg * 2.2
+    let casesContainer = casesPerContainer(req)
+    return casesContainer * Number(req.grossKg) * 2.2
 }
 
 function calculateFOBPerPack(req) {
@@ -39,8 +39,8 @@ function calculateDuties(req) {
 }
 
 function calculateDutiesPaid(req) {
-    //return (((req._40qtyPallets * sql.fobPerPack) + sql.oFreightCost + sql.truckingBarcelona) * sql.duties)
-    return 0
+    return (((req._40qtyPallets * req.fobPerPack) + req.oFreightCost + req.truckingBarcelona) * req.duties)
+    
 }
 
 function calculateCustomsBroker(req) {
@@ -55,15 +55,35 @@ module.exports = {
     async calculate(sql) {
         return new Promise(async (resolve, reject) => {
             try {
-
+                //inches
                 sql.inches = calculateInches(sql)
+
+                //est. pallet weight lbs
                 sql.palletWeight = calculatePalletWeightLbs(sql)
-                sql._40qtyPallets = calculate40QTYUnits(sql)
+                
+                //cases per container
+                sql.casesPerContainer = casesPerContainer(sql)
+                
+                //40' FCL QTY Units PALLET loaded **
+                sql._40qtyPallets = calculate40QTYUnits(sql)              
+                
+                //container wt. lbs
+                sql.containerLbs = calculateContainerWtLbs(sql)              
+
+                //est. trucking to Barcelona
                 sql.truckingBarcelona = calculateTrackingBarcelona(sql)
-                sql.fobPerPack = calculateFOBPerPack(sql)
+
+                //Ocean Freight Cost
                 sql.oFreightCost = calculateFreightCost(sql)
-                sql.duties = calculateDuties(sql)
+
+                //Duties to be paid
                 sql.dutiesToBePaid = calculateDutiesPaid(sql)
+
+
+
+
+                sql.fobPerPack = calculateFOBPerPack(sql)
+                sql.duties = calculateDuties(sql)
                 sql.customsBroker = calculateCustomsBroker(sql)
                 sql.oFreightCostUnit = calculateFreightCost(sql)
 
