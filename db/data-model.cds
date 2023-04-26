@@ -54,7 +54,7 @@ entity product : managed {
   factorExworks                 : Decimal;
   rrss                          : Decimal;
   supplyChainFactor             : Decimal;
-  precioDestino                 : Decimal;
+  landedPrice                   : Decimal;
   piezas_por_caja               : Decimal;
   caja_por_pallet               : Decimal;
   pallet_por_container          : Decimal;

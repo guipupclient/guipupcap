@@ -224,7 +224,7 @@ module.exports = {
         sql.oFreightCostUnit = calculateFreightCost(sql);
         sql.rrss = calculateRRSS(sql);
         sql.supplyChainFactor = calculateSupplyChainFactor(sql);
-        sql.precioDestino = calculatePrecioDestino(sql);
+        sql.landedPrice = calculatePrecioDestino(sql);
 
         resolve(sql);
       } catch (ex) {
