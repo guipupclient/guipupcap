@@ -73,31 +73,14 @@ function calculateFreightCost(req) {
 }
 
 function calculateRRSS(req) {
-  const unit_per_40 =
-    req.piezas_por_caja * req.caja_por_pallet * req.pallet_por_container;
-
-  //Formula D
-  const ocean_freight_cost_per_unit = calculateRRSSFormulaD(req, unit_per_40);
-  //Formula E
-  const total_warehouse_fullFlment_cost_per_unit = calculateRRSSFormulaE(
-    req,
-    unit_per_40
-  );
-  //Formula C
-  const total_landed_unit_cost =
-    Number(req.EXW_per_unit) +
-    ocean_freight_cost_per_unit +
-    total_warehouse_fullFlment_cost_per_unit;
-
-  //Formula B
-  const total_trucking_and_retailer_fees = calculateRRSSFormulaB(req);
-  //Formula A
   const total_unit_price_before_buffer_and_commission =
-    total_trucking_and_retailer_fees + total_landed_unit_cost;
+    calculateRRSSFormulaA(req);
 
-    return total_unit_price_before_buffer_and_commission + 
-        total_unit_price_before_buffer_and_commission * req.margen_cadena +
-        total_unit_price_before_buffer_and_commission * req.marketing
+  return (
+    total_unit_price_before_buffer_and_commission +
+    total_unit_price_before_buffer_and_commission * req.margen_cadena +
+    total_unit_price_before_buffer_and_commission * req.marketing
+  );
 }
 
 function calculateRRSSFormulaD(req, unit_per_40) {
@@ -159,6 +142,54 @@ function calculateRRSSFormulaB(req) {
   );
 }
 
+function calculateRRSSFormulaA(req) {
+  const unit_per_40 =
+    req.piezas_por_caja * req.caja_por_pallet * req.pallet_por_container;
+
+  //Formula D
+  const ocean_freight_cost_per_unit = calculateRRSSFormulaD(req, unit_per_40);
+  //Formula E
+  const total_warehouse_fullFlment_cost_per_unit = calculateRRSSFormulaE(
+    req,
+    unit_per_40
+  );
+  //Formula C
+  const total_landed_unit_cost =
+    Number(req.EXW_per_unit) +
+    ocean_freight_cost_per_unit +
+    total_warehouse_fullFlment_cost_per_unit;
+
+  //Formula B
+  const total_trucking_and_retailer_fees = calculateRRSSFormulaB(req);
+  //Formula A
+  return total_trucking_and_retailer_fees + total_landed_unit_cost;
+}
+
+function calculatePrecioDestino(req) {
+  const unit_per_40 =
+    req.piezas_por_caja * req.caja_por_pallet * req.pallet_por_container;
+
+  //Formula D
+  const ocean_freight_cost_per_unit = calculateRRSSFormulaD(req, unit_per_40);
+  //Formula E
+  const total_warehouse_fullFlment_cost_per_unit = calculateRRSSFormulaE(
+    req,
+    unit_per_40
+  );
+
+  //Formula C
+  return (
+    Number(req.EXW_per_unit) +
+    ocean_freight_cost_per_unit +
+    total_warehouse_fullFlment_cost_per_unit
+  );
+}
+
+function calculateSupplyChainFactor(req) {
+  const precio_destino = calculatePrecioDestino(req);
+  return precio_destino / req.EXW_per_unit;
+}
+
 module.exports = {
   async calculate(sql) {
     return new Promise(async (resolve, reject) => {
@@ -192,6 +223,8 @@ module.exports = {
         sql.customsBroker = calculateCustomsBroker(sql);
         sql.oFreightCostUnit = calculateFreightCost(sql);
         sql.rrss = calculateRRSS(sql);
+        sql.supplyChainFactor = calculateSupplyChainFactor(sql);
+        sql.precioDestino = calculatePrecioDestino(sql);
 
         resolve(sql);
       } catch (ex) {
