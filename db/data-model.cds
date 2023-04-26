@@ -52,4 +52,5 @@ entity product : managed {
   dlvyCostPerUnit     : Decimal;
   totalDelivCost      : Decimal;
   factorExworks       : Decimal;
+  rrss                : Decimal;
 }
