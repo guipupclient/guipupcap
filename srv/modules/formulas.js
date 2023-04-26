@@ -85,7 +85,7 @@ function calculateRRSS(req) {
   );
   //Formula C
   const total_landed_unit_cost =
-    req.EXW_per_unit +
+    Number(req.EXW_per_unit) +
     ocean_freight_cost_per_unit +
     total_warehouse_fullFlment_cost_per_unit;
 
