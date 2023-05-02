@@ -56,7 +56,7 @@ function calculateRSSPFormulaE(req, unit_per_40) {
       //-Pallets per container (ingresado por pantalla ) *  Inbound handling and Pallet put away ( de assumptions)
       inbound_handling_pallet_put_away * req.pallet_por_container +
       //- Pallets per container (ingresado por pantalla )  *  Apply Labels ( de assumptions)
-      apply_labels * req.pallet_por_container +
+      //apply_labels * req.pallet_por_container +
       //-Pallets per container (40’HC) ( de assumptions si no se ingresó por pantalla) * Months for storage ( de assumptions) * Storage per pallet ( de assumptions)
       pallet_por_container * months_for_storage * storage_per_pallet +
       //-Pallets per container (40’HC) ( de assumptions si no se ingresó por pantalla) *  Picking per Pallet (de assumptions)
