@@ -15,7 +15,7 @@ const special_pack_slip_prep = 0;
 const outbound_order_processing_BOL = 9.57;
 const freight_cord = 0;
 const min_pallets_per_outbound_order = 2;
-const annual_retailer_fee = 0;
+const annual_retailer_fee = 2400;
 const lumper_unload_charge = 85;
 
 module.exports = {

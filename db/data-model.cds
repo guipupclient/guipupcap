@@ -52,7 +52,7 @@ entity product : managed {
   dlvyCostPerUnit               : Decimal;
   totalDelivCost                : Decimal;
   factorExworks                 : Decimal;
-  rrss                          : Decimal;
+  rssp                          : Decimal;
   supplyChainFactor             : Decimal;
   landedPrice                   : Decimal;
   piezas_por_caja               : Decimal;

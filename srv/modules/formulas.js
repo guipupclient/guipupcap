@@ -17,64 +17,9 @@ const {
   lumper_unload_charge,
 } = require("../modules/assumptions");
 
-function calculateInches(req) {
-  return req.palletTotalHeight / 25.4;
-}
-
-function calculatePalletWeightLbs(req) {
-  return (parseFloat(req.grossKg) * 2.2 * req.casesPerPallet + 50).toFixed(2);
-}
-
-function casesPerContainer(req) {
-  let _40qtyPallets = calculate40QTYUnits(req);
-  return _40qtyPallets / Number(req.caseCount);
-}
-
-function calculate40QTYUnits(req) {
-  return 20 * Number(req.caseCount) * Number(req.casesPerPallet);
-}
-
-function calculateContainerWtLbs(req) {
-  let casesContainer = casesPerContainer(req);
-  return casesContainer * Number(req.grossKg) * 2.2;
-}
-
-function calculateFOBPerPack(req) {
-  return 0.95;
-}
-
-function calculateTrackingBarcelona(req) {
-  return 800;
-}
-
-function calculateFreightCost(req) {
-  return 8800;
-}
-
-function calculateDuties(req) {
-  return 0;
-}
-
-function calculateDutiesPaid(req) {
-  return (
-    (req._40qtyPallets * req.fobPerPack +
-      req.oFreightCost +
-      req.truckingBarcelona) *
-    req.duties
-  );
-}
-
-function calculateCustomsBroker(req) {
-  return 410;
-}
-
-function calculateFreightCost(req) {
-  return (800 + 8800 + 0 + 410) / 300;
-}
-
-function calculateRRSS(req) {
+function calculateRSSP(req) {
   const total_unit_price_before_buffer_and_commission =
-    calculateRRSSFormulaA(req);
+    calculateRSSPFormulaA(req);
 
   return (
     total_unit_price_before_buffer_and_commission +
@@ -83,7 +28,7 @@ function calculateRRSS(req) {
   );
 }
 
-function calculateRRSSFormulaD(req, unit_per_40) {
+function calculateRSSPFormulaD(req, unit_per_40) {
   //Units per 40' FCL = piezas x caja  * caja por pallet * pallet x container del valor ingresado
   return (
     //( Precio flete terrestre al puerto (ingresado pantalla fletes)
@@ -96,7 +41,7 @@ function calculateRRSSFormulaD(req, unit_per_40) {
     unit_per_40
   );
 }
-function calculateRRSSFormulaE(req, unit_per_40) {
+function calculateRSSPFormulaE(req, unit_per_40) {
   //Pallets per container (40’HC) ( de assumptions si no se ingresó por pantalla)
   const pallet_por_container = req.pallets_per_container_40_HC
     ? req.pallets_per_container_40_HC
@@ -120,36 +65,36 @@ function calculateRRSSFormulaE(req, unit_per_40) {
       pallet_slipSheet_stretchWrap_per_pallet +
       //- ( Special Pack Slip Prep (14.65 if required) (de assumptions)  + Outbound Order Processing - BOL  (de assumptions) + Freight Cord (de assumptions) )    * ( Pallets per container / Min. pallets per outbound order (de assumptions) )
       (special_pack_slip_prep + outbound_order_processing_BOL + freight_cord) *
-        (req.pallet_por_container / min_pallets_per_outbound_order)) /
+      (req.pallet_por_container / min_pallets_per_outbound_order)) /
     unit_per_40
   );
 }
 
-function calculateRRSSFormulaB(req) {
+function calculateRSSPFormulaB(req) {
   return (
     //Annual Retailer Fee (sale de assumptions) / Annual Sales Volume (units) – Se va a ingresar por pantalla
     annual_retailer_fee / req.annual_sales_volume +
     //Trucking cost (ingresado en pantalla de fletes) / (cajas x pallet (ingresado pantalla producto) * piezas x caja (ingresado pantalla producto) * Min. pallets per outbound order (de assumptions) )
     req.trucking_cost /
-      (req.caja_por_pallet *
-        req.piezas_por_caja *
-        min_pallets_per_outbound_order) +
+    (req.caja_por_pallet *
+      req.piezas_por_caja *
+      min_pallets_per_outbound_order) +
     //Lumper/Unload Charge (de assumptions) / (cajas x pallet (ingresado pantalla producto) * piezas x caja (ingresado pantalla producto) *  Min. pallets per outbound order (de assumptions) )
     lumper_unload_charge /
-      (req.caja_por_pallet *
-        req.piezas_por_caja *
-        min_pallets_per_outbound_order)
+    (req.caja_por_pallet *
+      req.piezas_por_caja *
+      min_pallets_per_outbound_order)
   );
 }
 
-function calculateRRSSFormulaA(req) {
+function calculateRSSPFormulaA(req) {
   const unit_per_40 =
     req.piezas_por_caja * req.caja_por_pallet * req.pallet_por_container;
 
   //Formula D
-  const ocean_freight_cost_per_unit = calculateRRSSFormulaD(req, unit_per_40);
+  const ocean_freight_cost_per_unit = calculateRSSPFormulaD(req, unit_per_40);
   //Formula E
-  const total_warehouse_fullFlment_cost_per_unit = calculateRRSSFormulaE(
+  const total_warehouse_fullFlment_cost_per_unit = calculateRSSPFormulaE(
     req,
     unit_per_40
   );
@@ -160,7 +105,7 @@ function calculateRRSSFormulaA(req) {
     total_warehouse_fullFlment_cost_per_unit;
 
   //Formula B
-  const total_trucking_and_retailer_fees = calculateRRSSFormulaB(req);
+  const total_trucking_and_retailer_fees = calculateRSSPFormulaB(req);
   //Formula A
   return total_trucking_and_retailer_fees + total_landed_unit_cost;
 }
@@ -170,9 +115,9 @@ function calculatePrecioDestino(req) {
     req.piezas_por_caja * req.caja_por_pallet * req.pallet_por_container;
 
   //Formula D
-  const ocean_freight_cost_per_unit = calculateRRSSFormulaD(req, unit_per_40);
+  const ocean_freight_cost_per_unit = calculateRSSPFormulaD(req, unit_per_40);
   //Formula E
-  const total_warehouse_fullFlment_cost_per_unit = calculateRRSSFormulaE(
+  const total_warehouse_fullFlment_cost_per_unit = calculateRSSPFormulaE(
     req,
     unit_per_40
   );
@@ -194,35 +139,7 @@ module.exports = {
   async calculate(sql) {
     return new Promise(async (resolve, reject) => {
       try {
-        //inches
-        sql.inches = calculateInches(sql);
-
-        //est. pallet weight lbs
-        sql.palletWeight = calculatePalletWeightLbs(sql);
-
-        //cases per container
-        sql.casesPerContainer = casesPerContainer(sql);
-
-        //40' FCL QTY Units PALLET loaded **
-        sql._40qtyPallets = calculate40QTYUnits(sql);
-
-        //container wt. lbs
-        sql.containerLbs = calculateContainerWtLbs(sql);
-
-        //est. trucking to Barcelona
-        sql.truckingBarcelona = calculateTrackingBarcelona(sql);
-
-        //Ocean Freight Cost
-        sql.oFreightCost = calculateFreightCost(sql);
-
-        //Duties to be paid
-        sql.dutiesToBePaid = calculateDutiesPaid(sql);
-
-        sql.fobPerPack = calculateFOBPerPack(sql);
-        sql.duties = calculateDuties(sql);
-        sql.customsBroker = calculateCustomsBroker(sql);
-        sql.oFreightCostUnit = calculateFreightCost(sql);
-        sql.rrss = calculateRRSS(sql);
+        sql.rssp = calculateRSSP(sql);
         sql.supplyChainFactor = calculateSupplyChainFactor(sql);
         sql.landedPrice = calculatePrecioDestino(sql);
 
