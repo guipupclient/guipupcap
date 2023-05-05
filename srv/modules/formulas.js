@@ -15,6 +15,7 @@ const {
   min_pallets_per_outbound_order,
   annual_retailer_fee,
   lumper_unload_charge,
+  trucking_cost
 } = require("../modules/assumptions");
 
 function calculateRSSP(req) {
@@ -23,8 +24,8 @@ function calculateRSSP(req) {
 
   return (
     total_unit_price_before_buffer_and_commission +
-    total_unit_price_before_buffer_and_commission * req.margen_cadena +
-    total_unit_price_before_buffer_and_commission * req.marketing
+    Number(req.margen_cadena) +
+    Number(req.marketing)
   );
 }
 
@@ -32,9 +33,9 @@ function calculateRSSPFormulaD(req, unit_per_40) {
   //Units per 40' FCL = piezas x caja  * caja por pallet * pallet x container del valor ingresado
   return (
     //( Precio flete terrestre al puerto (ingresado pantalla fletes)
-    (req.precio_flete_terrestre_puerto +
+    (Number(req.precio_flete_terrestre_puerto) +
       //Precio flete marítimo (ingresado pantalla fletes)
-      req.precio_flete_maritimo +
+      Number(req.precio_flete_maritimo) +
       //Customs Broker (de assumptions ) ) /
       customs_broker) /
     //Units per 40' FCL
@@ -55,8 +56,6 @@ function calculateRSSPFormulaE(req, unit_per_40) {
       apply_labels * req.pallet_por_container +
       //-Pallets per container (ingresado por pantalla ) *  Inbound handling and Pallet put away ( de assumptions)
       inbound_handling_pallet_put_away * req.pallet_por_container +
-      //- Pallets per container (ingresado por pantalla )  *  Apply Labels ( de assumptions)
-      //apply_labels * req.pallet_por_container +
       //-Pallets per container (40’HC) ( de assumptions si no se ingresó por pantalla) * Months for storage ( de assumptions) * Storage per pallet ( de assumptions)
       pallet_por_container * months_for_storage * storage_per_pallet +
       //-Pallets per container (40’HC) ( de assumptions si no se ingresó por pantalla) *  Picking per Pallet (de assumptions)
@@ -74,8 +73,8 @@ function calculateRSSPFormulaB(req) {
   return (
     //Annual Retailer Fee (sale de assumptions) / Annual Sales Volume (units) – Se va a ingresar por pantalla
     annual_retailer_fee / req.annual_sales_volume +
-    //Trucking cost (ingresado en pantalla de fletes) / (cajas x pallet (ingresado pantalla producto) * piezas x caja (ingresado pantalla producto) * Min. pallets per outbound order (de assumptions) )
-    req.trucking_cost /
+    //Trucking cost (ingresado en pantalla de fletes - Segun parece es un Assumption) / (cajas x pallet (ingresado pantalla producto) * piezas x caja (ingresado pantalla producto) * Min. pallets per outbound order (de assumptions) )
+    trucking_cost /
     (req.caja_por_pallet *
       req.piezas_por_caja *
       min_pallets_per_outbound_order) +
@@ -131,17 +130,18 @@ function calculatePrecioDestino(req) {
 }
 
 function calculateSupplyChainFactor(req) {
-  const precio_destino = calculatePrecioDestino(req);
-  return precio_destino / req.EXW_per_unit;
+  const RSSP = calculateRSSP(req);
+  return (RSSP / req.EXW_per_unit) * 100;
 }
 
+//Calculamos los 3 campos necesarios:
 module.exports = {
   async calculate(sql) {
     return new Promise(async (resolve, reject) => {
       try {
-        sql.rssp = calculateRSSP(sql);
-        sql.supplyChainFactor = calculateSupplyChainFactor(sql);
-        sql.landedPrice = calculatePrecioDestino(sql);
+        sql.rssp = calculateRSSP(sql).toFixed(2);
+        sql.supplyChainFactor = Math.round(calculateSupplyChainFactor(sql));
+        sql.landedPrice = calculatePrecioDestino(sql).toFixed(2);
 
         resolve(sql);
       } catch (ex) {

@@ -1,7 +1,7 @@
 //ASSUMPTIONS
 
-const transportationPort = 800;
-const customs_broker = 800;
+const transportationPort = 1500;
+const customs_broker = 200;
 const transportation_from_port_to_warehouse = 505;
 const pallet_unload_receive = 6;
 const apply_labels = 0.6;
@@ -15,8 +15,9 @@ const special_pack_slip_prep = 0;
 const outbound_order_processing_BOL = 9.57;
 const freight_cord = 0;
 const min_pallets_per_outbound_order = 2;
-const annual_retailer_fee = 2400;
+const annual_retailer_fee = 0;
 const lumper_unload_charge = 85;
+const trucking_cost = 468.94;
 
 module.exports = {
   transportationPort,
@@ -36,4 +37,5 @@ module.exports = {
   min_pallets_per_outbound_order,
   annual_retailer_fee,
   lumper_unload_charge,
+  trucking_cost
 };
