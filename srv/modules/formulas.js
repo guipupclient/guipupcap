@@ -24,8 +24,8 @@ function calculateRSSP(req) {
 
   return (
     total_unit_price_before_buffer_and_commission +
-    Number(req.margen_cadena) +
-    Number(req.marketing)
+    (Number(req.margen_cadena) * total_unit_price_before_buffer_and_commission) / 100 +
+    (Number(req.marketing) * total_unit_price_before_buffer_and_commission) / 100
   );
 }
 
